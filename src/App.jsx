@@ -24,11 +24,10 @@ export default function App() {
         return newCurrentScore;
       });
       prevPokemonsRef.current.push(pokemonName);
+      setPokemons((prevPokemons) => shuffle(prevPokemons));
     } else {
       resetGame();
     }
-
-    setPokemons((prevPokemons) => shuffle(prevPokemons));
   }
 
   useEffect(() => {
