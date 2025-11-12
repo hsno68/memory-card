@@ -1,3 +1,48 @@
+import { useState, useEffect, useRef } from "react";
+import { shuffleArray } from "./utility.js";
+import { initialPokemons } from "./config.js";
+import Card from "./Card.jsx";
+
 export default function App() {
-  return <div></div>;
+  const [pokemons, setPokemons] = useState(initialPokemons);
+
+  function shuffle() {
+    setPokemons((prevPokemons) => shuffleArray(prevPokemons));
+  }
+
+  useEffect(() => {
+    async function fetchSprites() {
+      try {
+        const sprites = await Promise.all(
+          pokemons.map(async ({ name }) => {
+            const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`, { mode: "cors" });
+
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data.sprites.front_default;
+          })
+        );
+
+        const updatedPokemons = pokemons.map((pokemon, index) => ({ ...pokemon, src: sprites[index] }));
+
+        setPokemons(updatedPokemons);
+      } catch (error) {
+        console.error("Error fetching sprites:", error);
+      }
+    }
+
+    fetchSprites();
+  }, []);
+
+  return (
+    <div>
+      <h1>Memory Game</h1>
+      {pokemons.map(({ name, src }) => (
+        <Card key={name} name={name} src={src} onClick={shuffle} />
+      ))}
+    </div>
+  );
 }
