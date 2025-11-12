@@ -1,13 +1,34 @@
 import { useState, useEffect, useRef } from "react";
-import { shuffleArray } from "./utility.js";
+import { shuffle } from "./utility.js";
 import { initialPokemons } from "./config.js";
 import Card from "./Card.jsx";
 
 export default function App() {
   const [pokemons, setPokemons] = useState(initialPokemons);
+  const [currentScore, setCurrentScore] = useState(0);
+  const [highscore, setHighscore] = useState(0);
+  const initialPokemonsRef = useRef(null);
+  const prevPokemonsRef = useRef([]);
 
-  function shuffle() {
-    setPokemons((prevPokemons) => shuffleArray(prevPokemons));
+  function resetGame() {
+    setPokemons(initialPokemonsRef.current);
+    setCurrentScore(0);
+    prevPokemonsRef.current.length = 0;
+  }
+
+  function handleClick(pokemonName) {
+    if (!prevPokemonsRef.current.includes(pokemonName)) {
+      setCurrentScore((prevCurrentScore) => {
+        const newCurrentScore = prevCurrentScore + 1;
+        setHighscore((prevHighscore) => Math.max(prevHighscore, newCurrentScore));
+        return newCurrentScore;
+      });
+      prevPokemonsRef.current.push(pokemonName);
+    } else {
+      resetGame();
+    }
+
+    setPokemons((prevPokemons) => shuffle(prevPokemons));
   }
 
   useEffect(() => {
@@ -28,6 +49,7 @@ export default function App() {
 
         const updatedPokemons = pokemons.map((pokemon, index) => ({ ...pokemon, src: sprites[index] }));
 
+        initialPokemonsRef.current = updatedPokemons;
         setPokemons(updatedPokemons);
       } catch (error) {
         console.error("Error fetching sprites:", error);
@@ -41,8 +63,14 @@ export default function App() {
     <div>
       <h1>Memory Game</h1>
       {pokemons.map(({ name, src }) => (
-        <Card key={name} name={name} src={src} onClick={shuffle} />
+        <Card key={name} name={name} src={src} onClick={() => handleClick(name)} />
       ))}
+      <h2>Score: {currentScore}</h2>
+      <h2>Highscore: {highscore}</h2>
+      <button type="button" aria-describedby="desc" onClick={resetGame}>
+        Reset
+      </button>
+      <p>Retains your highscore.</p>
     </div>
   );
 }
