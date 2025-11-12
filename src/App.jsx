@@ -7,27 +7,25 @@ export default function App() {
   const [pokemons, setPokemons] = useState(initialPokemons);
   const [currentScore, setCurrentScore] = useState(0);
   const [highscore, setHighscore] = useState(0);
-  const initialPokemonsRef = useRef(null);
-  const prevPokemonsRef = useRef([]);
+  const prevPokemonsRef = useRef("");
 
   function resetGame() {
-    setPokemons(initialPokemonsRef.current);
     setCurrentScore(0);
-    prevPokemonsRef.current.length = 0;
+    prevPokemonsRef.current = "";
   }
 
   function handleClick(pokemonName) {
-    if (!prevPokemonsRef.current.includes(pokemonName)) {
+    if (pokemonName !== prevPokemonsRef.current) {
       setCurrentScore((prevCurrentScore) => {
         const newCurrentScore = prevCurrentScore + 1;
         setHighscore((prevHighscore) => Math.max(prevHighscore, newCurrentScore));
         return newCurrentScore;
       });
-      prevPokemonsRef.current.push(pokemonName);
-      setPokemons((prevPokemons) => shuffle(prevPokemons));
+      prevPokemonsRef.current = pokemonName;
     } else {
       resetGame();
     }
+    setPokemons((prevPokemons) => shuffle(prevPokemons));
   }
 
   useEffect(() => {
@@ -48,7 +46,6 @@ export default function App() {
 
         const updatedPokemons = pokemons.map((pokemon, index) => ({ ...pokemon, src: sprites[index] }));
 
-        initialPokemonsRef.current = updatedPokemons;
         setPokemons(updatedPokemons);
       } catch (error) {
         console.error("Error fetching sprites:", error);
